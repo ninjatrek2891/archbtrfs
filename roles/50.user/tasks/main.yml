@@ -20,3 +20,10 @@
     regexp: '^# %wheel ALL=\(ALL:ALL\) ALL'
     line: '%wheel ALL=(ALL:ALL) ALL'
     validate: 'visudo -cf %s'
+
+- name: Disable default lecture on sudo
+  ansible.builtin.copy:
+    dest: /mnt/etc/sudoers.d/99-no-lectures
+    mode: "0644"
+    content: |
+      Defaults lecture=never

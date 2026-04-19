@@ -1,0 +1,28 @@
+---
+- name: Install flatpak
+  ansible.builtin.command:
+    cmd: >-
+      arch-chroot /mnt pacman -S --noconfirm flatpak
+  args:
+    creates: /mnt/usr/bin/flatpak
+
+- name: Update flatpak
+  changed_when: false
+  ansible.builtin.command:
+    cmd: >-
+      arch-chroot /mnt flatpak -y update
+
+- name: Install flatpak containers
+  changed_when: false
+  ansible.builtin.command:
+    cmd: >-
+      arch-chroot /mnt flatpak -y install {{ item }}
+  loop:
+    - io.gitlab.librewolf-community
+    - com.bitwarden.desktop
+    - com.discordapp.Discord
+    - com.github.tchx84.Flatseal
+    - com.valvesoftware.Steam
+    - com.yubico.yubioath
+    - org.signal.Signal
+    - org.videolan.VLC

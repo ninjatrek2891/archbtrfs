@@ -10,7 +10,7 @@
     cmd: >-
       pacstrap -K /mnt
       base linux linux-firmware
-      btrfs-progs vim networkmanager sudo
+      btrfs-progs vim networkmanager sudo less
       openssh cryptsetup base-devel git htop btop
   args:
     creates: /mnt/etc/arch-release
@@ -32,7 +32,6 @@
     path: /mnt/etc/makepkg.conf
     regexp: '^#MAKEFLAGS="-j2"$'
     replace: 'MAKEFLAGS="-j4"'
-
 
 - name: Enable NetworkManager
   changed_when: false

@@ -13,12 +13,19 @@ An Ansible playbook that installs Arch Linux in a VM with a GPT disk layout, LUK
 - Installs `yay` from AUR and cleans up build artifacts.
 
 ## Requirements
-- Arch Linux live environment with `ansible` available.
+- Arch Linux live environment with `python 3.x` available.
 - Target disk is empty or disposable. This playbook **destroys all data** on `/dev/{{ diskdevice }}`.
 - Required collections:
   - `community.general`
   - `community.crypto`
   - `ansible.posix`
+
+Inside the live environment you need to set the root password:
+```bash
+passwd
+```
+
+Also make sure you know your IP address before continuing. For the below example my VM had the ip address 192.168.2.39.
 
 You can install collections with:
 
@@ -30,7 +37,7 @@ ansible-galaxy collection install community.general community.crypto ansible.pos
 Run the playbook from the Arch live environment, targeting the VM host (often `localhost` for local execution):
 
 ```bash
-ansible-playbook -i localhost, -c local archbtrfssetup.yml
+ansible-playbook archbtrfssetup.yml -u root -i192.168.2.39, -k
 ```
 
 You will be prompted for:
@@ -46,7 +53,7 @@ Defined in `archbtrfssetup.yml`:
 Override with `-e`:
 
 ```bash
-ansible-playbook -i localhost, -c local archbtrfssetup.yml -e diskdevice=sda -e hostname=myarch
+ansible-playbook archbtrfssetup.yml -u root -i192.168.2.39, -k -e diskdevice=sda -e hostname=myarch
 ```
 
 ## Structure
@@ -63,7 +70,6 @@ ansible-playbook -i localhost, -c local archbtrfssetup.yml -e diskdevice=sda -e 
 ## Notes and caveats
 - The playbook is partially written by an LLM, but with oversight of an experienced in a professional setting Ansible user.
 - The initial README is completely written by an LLM to reduce time and have more fun with Ansible.
-- The EFI partition mount uses `/dev/vda1` in `roles/10.filesystems`. If you change `diskdevice`, update that task or it will still mount `vda1`.
 - `reflector` is configured for the Netherlands and mirrors within the last 6 hours.
 - The playbook assumes systemd-boot and does not install GRUB.
 - `MAKEFLAGS` is set to `-j4` in `/etc/makepkg.conf`.

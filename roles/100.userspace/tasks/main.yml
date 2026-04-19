@@ -1,0 +1,8 @@
+---
+- name: Run sddm-dekstop
+  ansible.builtin.include_tasks:
+    file: sddm-desktop.yml
+
+- name: Run flatpak installation
+  ansible.builtin.include_tasks:
+    file: flatpak.yml
