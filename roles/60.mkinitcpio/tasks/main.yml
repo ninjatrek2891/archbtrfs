@@ -1,0 +1,11 @@
+---
+- name: Set mkinitcpio hooks for encrypted root
+  ansible.builtin.lineinfile:
+    path: /mnt/etc/mkinitcpio.conf
+    regexp: '^HOOKS='
+    line: 'HOOKS=(base systemd autodetect microcode modconf kms keyboard keymap sd-vconsole block sd-encrypt filesystems fsck)'
+
+- name: Rebuild initramfs
+  changed_when: false
+  ansible.builtin.command:
+    cmd: arch-chroot /mnt mkinitcpio -P

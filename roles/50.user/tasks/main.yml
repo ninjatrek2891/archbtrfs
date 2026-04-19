@@ -1,0 +1,22 @@
+---
+- name: Create user in target
+  changed_when: false
+  ansible.builtin.command:
+    cmd: >-
+      arch-chroot /mnt useradd -m -G wheel {{ setup_username }}
+  args:
+    creates: "/mnt/home/{{ setup_username }}"
+
+- name: Set user password in target
+  changed_when: false
+  ansible.builtin.command:
+    cmd: >-
+      arch-chroot /mnt bash -c "echo '{{ setup_username }}:{{ setup_password }}' | chpasswd"
+  no_log: true
+
+- name: Enable wheel group in sudoers
+  ansible.builtin.lineinfile:
+    path: /mnt/etc/sudoers
+    regexp: '^# %wheel ALL=\(ALL:ALL\) ALL'
+    line: '%wheel ALL=(ALL:ALL) ALL'
+    validate: 'visudo -cf %s'

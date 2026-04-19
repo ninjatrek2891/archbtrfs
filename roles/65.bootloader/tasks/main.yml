@@ -1,0 +1,60 @@
+---
+- name: Install systemd-boot
+  changed_when: false
+  ansible.builtin.command:
+    cmd: arch-chroot /mnt bootctl install
+
+- name: Get LUKS partition UUID
+  ansible.builtin.command:
+    cmd: blkid -s UUID -o value /dev/{{ diskdevice }}2
+  register: bootloader_cryptuuid
+  changed_when: false
+
+- name: Ensure loader directories exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - /mnt/boot/loader
+    - /mnt/boot/loader/entries
+
+- name: Write loader.conf
+  ansible.builtin.copy:
+    dest: /mnt/boot/loader/loader.conf
+    content: |
+      default arch.conf
+      timeout 3
+      editor no
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Write main boot entry
+  ansible.builtin.copy:
+    dest: /mnt/boot/loader/entries/arch.conf
+    content: |
+      title   Arch Linux
+      linux   /vmlinuz-linux
+      initrd  /initramfs-linux.img
+      options rd.luks.name={{ bootloader_cryptuuid.stdout }}=cryptroot root=/dev/mapper/cryptroot rootflags=subvol=@ rw
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Write fallback boot entry
+  ansible.builtin.copy:
+    dest: /mnt/boot/loader/entries/arch-fallback.conf
+    content: |
+      title   Arch Linux (fallback)
+      linux   /vmlinuz-linux
+      initrd  /initramfs-linux-fallback.img
+      options rd.luks.name={{ bootloader_cryptuuid.stdout }}=cryptroot root=/dev/mapper/cryptroot rootflags=subvol=@ rw
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Rebuild initramfs
+  changed_when: false
+  ansible.builtin.command:
+    cmd: arch-chroot /mnt mkinitcpio -P

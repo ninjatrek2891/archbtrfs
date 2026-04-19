@@ -1,0 +1,122 @@
+---
+- name: Create GPT label
+  community.general.parted:
+    device: /dev/{{ diskdevice }}
+    label: gpt
+
+- name: Create EFI partition
+  community.general.parted:
+    device: /dev/{{ diskdevice }}
+    number: 1
+    part_start: 1MiB
+    part_end: 1025MiB
+    fs_type: fat32
+    # name: ESP
+    # flags: [esp]
+    state: present
+
+- name: Set EFI esp flag
+  changed_when: false
+  ansible.builtin.command:
+    cmd: parted -s /dev/{{ diskdevice }} set 1 esp on
+
+- name: Create root partition
+  community.general.parted:
+    device: /dev/{{ diskdevice }}
+    number: 2
+    part_start: 1025MiB
+    part_end: 100%
+    state: present
+
+- name: Create LUKS device
+  community.crypto.luks_device:
+    device: /dev/{{ diskdevice }}2
+    state: present
+    passphrase: "{{ luks_passhrase }}"
+
+- name: Open LUKS device
+  community.crypto.luks_device:
+    device: /dev/{{ diskdevice }}2
+    state: opened
+    name: cryptroot
+    passphrase: "{{ luks_passhrase }}"
+
+- name: Format EFI partition
+  community.general.filesystem:
+    dev: /dev/{{ diskdevice }}1
+    fstype: vfat
+    opts: -F32
+
+- name: Format cryptroot as BTRFS
+  community.general.filesystem:
+    dev: /dev/mapper/cryptroot
+    fstype: btrfs
+    force: true
+
+- name: Mount Btrfs filesystem temporarily
+  ansible.posix.mount:
+    path: /mnt
+    src: /dev/mapper/cryptroot
+    fstype: btrfs
+    state: mounted
+
+- name: Create @ subvolume
+  ansible.builtin.command: btrfs subvolume create /mnt/@
+  args:
+    creates: /mnt/@
+
+- name: Create @home subvolume
+  ansible.builtin.command: btrfs subvolume create /mnt/@home
+  args:
+    creates: /mnt/@home
+
+- name: Create @snapshots subvolume
+  ansible.builtin.command: btrfs subvolume create /mnt/@snapshots
+  args:
+    creates: /mnt/@snapshots
+
+- name: Unmount temporary mount
+  ansible.posix.mount:
+    path: /mnt
+    state: unmounted
+
+- name: Mount root subvolume
+  ansible.posix.mount:
+    path: /mnt
+    src: /dev/mapper/cryptroot
+    fstype: btrfs
+    opts: subvol=@,compress=zstd,noatime
+    state: mounted
+
+- name: Create mountpoint directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - /mnt/boot
+    - /mnt/home
+    - /mnt/.snapshots
+
+- name: Mount home subvolume
+  ansible.posix.mount:
+    path: /mnt/home
+    src: /dev/mapper/cryptroot
+    fstype: btrfs
+    opts: subvol=@home,compress=zstd,noatime
+    state: mounted
+
+- name: Mount snapshots subvolume
+  ansible.posix.mount:
+    path: /mnt/.snapshots
+    src: /dev/mapper/cryptroot
+    fstype: btrfs
+    opts: subvol=@snapshots,compress=zstd,noatime
+    state: mounted
+
+- name: Mount EFI partition
+  ansible.posix.mount:
+    path: /mnt/boot
+    src: /dev/vda1
+    fstype: vfat
+    state: mounted

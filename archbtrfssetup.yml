@@ -1,0 +1,26 @@
+---
+- name: Arch BTRFS installation into VM
+  hosts: all
+  gather_facts: true
+  vars:
+    diskdevice: vda
+    hostname: archbtrfs
+  vars_prompt:
+    - name: luks_passhrase
+      prompt: "Enter LUKS passphrase"
+      private: true
+    - name: setup_username
+      prompt: "Enter desired username"
+      private: false
+    - name: setup_password
+      prompt: "Enter desired password"
+      private: true
+  roles:
+    - 10.filesystems
+    - 20.arch-initial
+    - 30.hostname
+    - 40.locale
+    - 50.user
+    - 60.mkinitcpio
+    - 65.bootloader
+    - 70.yay
