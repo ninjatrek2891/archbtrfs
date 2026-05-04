@@ -12,6 +12,7 @@
       base linux linux-firmware
       btrfs-progs vim networkmanager sudo less
       openssh cryptsetup base-devel git htop btop
+      intel-ucode man-db man-pages
   args:
     creates: /mnt/etc/arch-release
 
