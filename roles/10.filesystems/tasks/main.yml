@@ -11,8 +11,6 @@
     part_start: 1MiB
     part_end: 1025MiB
     fs_type: fat32
-    # name: ESP
-    # flags: [esp]
     state: present
 
 - name: Set EFI esp flag
@@ -21,29 +19,31 @@
     cmd: parted -s /dev/{{ diskdevice }} set 1 esp on
 
 - name: Create root partition
+  register: output  
   community.general.parted:
     device: /dev/{{ diskdevice }}
     number: 2
     part_start: 1025MiB
     part_end: 100%
     state: present
+    fs_type: ext4
 
 - name: Create LUKS device
   community.crypto.luks_device:
-    device: /dev/{{ diskdevice }}2
+    device: /dev/{{ diskdevice }}p2
     state: present
     passphrase: "{{ luks_passhrase }}"
 
 - name: Open LUKS device
   community.crypto.luks_device:
-    device: /dev/{{ diskdevice }}2
+    device: /dev/{{ diskdevice }}p2
     state: opened
     name: cryptroot
     passphrase: "{{ luks_passhrase }}"
 
 - name: Format EFI partition
   community.general.filesystem:
-    dev: /dev/{{ diskdevice }}1
+    dev: /dev/{{ diskdevice }}p1
     fstype: vfat
     opts: -F32
 
@@ -117,6 +117,6 @@
 - name: Mount EFI partition
   ansible.posix.mount:
     path: /mnt/boot
-    src: /dev/{{ diskdevice }}1
+    src: /dev/{{ diskdevice }}p1
     fstype: vfat
     state: mounted

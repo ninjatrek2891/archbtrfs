@@ -6,7 +6,7 @@
 
 - name: Get LUKS partition UUID
   ansible.builtin.command:
-    cmd: blkid -s UUID -o value /dev/{{ diskdevice }}2
+    cmd: blkid -s UUID -o value /dev/{{ diskdevice }}p2
   register: bootloader_cryptuuid
   changed_when: false
 

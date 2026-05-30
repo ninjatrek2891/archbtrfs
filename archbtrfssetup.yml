@@ -3,8 +3,11 @@
   hosts: all
   gather_facts: true
   vars:
-    diskdevice: vda
-    hostname: archbtrfs
+    # diskdevice: [disk]
+    # hostname: [hostname]
+    # luks_passhrase: [luks]
+    # setup_username: [username]
+    # setup_password: [password]
   vars_prompt:
     - name: luks_passhrase
       prompt: "Enter LUKS passphrase"
@@ -15,6 +18,12 @@
     - name: setup_password
       prompt: "Enter desired password"
       private: true
+    - name: hostname
+      prompt: "Enter system hostname"
+      private: false
+    - name: luks
+      prompt: "What is the disk designation? (i.e. nvm0n1)"
+      private: false
   roles:
     - 10.filesystems
     - 20.arch-initial

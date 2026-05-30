@@ -37,7 +37,7 @@ ansible-galaxy collection install community.general community.crypto ansible.pos
 Run the playbook from the Arch live environment, targeting the VM host (often `localhost` for local execution):
 
 ```bash
-ansible-playbook archbtrfssetup.yml -u root -i192.168.2.39, -k
+ansible-playbook archbtrfssetup.yml -u root -i192.168.2.15, -k
 ```
 
 You will be prompted for:
@@ -47,13 +47,9 @@ You will be prompted for:
 
 ## Variables
 Defined in `archbtrfssetup.yml`:
-- `diskdevice`: default `vda`
-- `hostname`: default `archbtrfs`
-
-Override with `-e`:
 
 ```bash
-ansible-playbook archbtrfssetup.yml -u root -i192.168.2.39, -k -e diskdevice=sda -e hostname=myarch
+ansible-playbook archbtrfssetup.yml -u root -i192.168.2.39, -k
 ```
 
 ## Structure
@@ -72,4 +68,4 @@ ansible-playbook archbtrfssetup.yml -u root -i192.168.2.39, -k -e diskdevice=sda
 - The initial README is completely written by an LLM to reduce time and have more fun with Ansible.
 - `reflector` is configured for the Netherlands and mirrors within the last 6 hours.
 - The playbook assumes systemd-boot and does not install GRUB.
-- `MAKEFLAGS` is set to `-j4` in `/etc/makepkg.conf`.
+- `MAKEFLAGS` is set to `-jx` in `/etc/makepkg.conf`. Ansible will calculate how much core's it can use by substracting 2 of your total cores.

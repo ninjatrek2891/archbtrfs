@@ -3,16 +3,15 @@
   changed_when: false
   ansible.builtin.command:
     cmd: >-
-      reflector --country "Netherlands" --age 6 --sort rate --save /etc/pacman.d/mirrorlist
+      reflector --country "Netherlands" --age 1 --sort rate --save /etc/pacman.d/mirrorlist
 
 - name: Install base system with pacstrap
   ansible.builtin.command:
     cmd: >-
-      pacstrap -K /mnt
-      base linux linux-firmware
+      pacstrap -K /mnt base linux linux-firmware linux-headers
       btrfs-progs vim networkmanager sudo less
       openssh cryptsetup base-devel git htop btop
-      intel-ucode man-db man-pages
+      man-db man-pages nvidia-open
   args:
     creates: /mnt/etc/arch-release
 
@@ -32,7 +31,7 @@
   ansible.builtin.replace:
     path: /mnt/etc/makepkg.conf
     regexp: '^#MAKEFLAGS="-j2"$'
-    replace: 'MAKEFLAGS="-j4"'
+    replace: 'MAKEFLAGS="-j{{ ansible_processor_cores - 2}}"'
 
 - name: Enable NetworkManager
   changed_when: false

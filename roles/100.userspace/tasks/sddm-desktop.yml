@@ -1,5 +1,5 @@
 ---
-- name: Install SDDM and Plasma-meta
+- name: Install SDDM and Plasma-desktop
   changed_when: false
   ansible.builtin.command:
     cmd: >-
@@ -9,17 +9,20 @@
       dolphin
       konsole
 
-- name: Put SDDM on wayland
-  ansible.builtin.lineinfile:
-    path: /mnt/usr/lib/sddm/sddm.conf.d/default.conf
-    regexp: '^DisplayServer=x11'
-    line: 'DisplayServer=wayland'
+- name: Place SDDM conf file
+  ansible.builtin.copy:
+    dest: /mnt/etc/sddm.conf
+    content: |
+      [General]
+      DisplayServer=wayland
 
-- name: Put breeze on wayland
-  ansible.builtin.lineinfile:
-    path: /mnt/usr/lib/sddm/sddm.conf.d/default.conf
-    regexp: 'Current='
-    line: 'Current=breeze'
+      [Wayland]
+      CompositorCommand=/usr/bin/kwin_wayland
+      SessionCommand=/usr/share/sddm/scripts/wayland-session
+      SessionDir=/usr/share/wayland-sessions
+
+      [Theme]
+      Current=breeze
 
 - name: Create kdeglobals for user
   ansible.builtin.file:
