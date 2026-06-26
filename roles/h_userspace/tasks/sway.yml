@@ -1,0 +1,81 @@
+---
+- name: Install packages into a new root (similar to pacstrap)
+  community.general.pacman:
+    name:
+      - sway
+      - swaybg
+      - swayidle
+      - swaylock
+      - swayosd
+      - waybar
+      - wmenu
+      - kitty
+      - j4-dmenu-desktop
+      - mako
+      - neovim
+      - gnome-keyring
+      - seahorse
+      - wl-clipboard
+      - slurp
+      - stow
+      - otf-font-awesome
+      - ttf-jetbrains-mono
+      - ttf-jetbrains-mono-nerd
+      - greetd
+      - greetd-tuigreet
+      - thunar
+      - galculator
+    state: present
+    root: /mnt
+    cachedir: /mnt/var/cache/pacman/pkg
+    config: /mnt/etc/pacman.conf
+    update_cache: false
+
+
+- name: Create background directory
+  ansible.builtin.file:
+    path: /usr/share/backgrounds
+    state: directory
+    mode: "0755"
+    owner: root
+    group: root
+
+- name: Deploy background into place
+  ansible.builtin.copy:
+    src: arch-background.jpg
+    dest: /usr/share/backgrounds/arch-background.jpg
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Deploy greetd config
+  ansible.builtin.copy:
+    mode: "0644"
+    owner: root
+    group: root
+    dest: /mnt/etc/greetd/config.toml
+    content: |
+      [terminal]
+      # The VT to run the greeter on. Can be "next", "current" or a number
+      # designating the VT.
+      vt = 1
+
+      # The default session, also known as the greeter.
+      [default_session]
+
+      # `agreety` is the bundled agetty/login-lookalike. You can replace `/bin/sh`
+      # with whatever you want started, such as `sway`.
+      command = "tuigreet -r --cmd 'sway --unsupported-gpu'"
+
+      # The user to run the command as. The privileges this user must have depends
+      # on the greeter. A graphical greeter may for example require the user to be
+      # in the `video` group.
+      user = "greeter"
+
+- name: Enable greetd login
+  register: h_userspace_greetd
+  changed_when: '"Created symlink" in h_userspace_greetd'
+  failed_when: h_userspace_greetd.rc > 0
+  ansible.builtin.command:
+    cmd: >-
+      arch-chroot /mnt systemctl enable greetd

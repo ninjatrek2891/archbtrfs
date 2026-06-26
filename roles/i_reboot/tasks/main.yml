@@ -1,0 +1,24 @@
+---
+- name: Enable sshd service
+  ansible.builtin.command:
+    cmd: >-
+      arch-chroot /mnt
+      systemctl enable sshd
+
+- name: Allow temporary passwordless sudo for setup user
+  ansible.builtin.copy:
+    dest: "/mnt/etc/sudoers.d/99-{{ setup_username }}-temp"
+    content: "{{ setup_username }} ALL=(ALL) NOPASSWD: ALL\n"
+    owner: root
+    group: root
+    mode: "0440"
+
+- name: Send message
+  ansible.builtin.debug:
+    msg: "System wil reboot now, please enter LUKS password"
+
+- name: Reboot machine
+  ansible.builtin.command:
+    cmd: reboot now
+  async: 1
+  poll: 0

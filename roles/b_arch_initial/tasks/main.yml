@@ -1,0 +1,60 @@
+---
+# - name: Check if reflector has run already
+#   register: b_arch_initial_reflector
+#   ansible.builtin.stat:
+#     path: /etc/pacman.d/mirrorlist
+
+- name: Run reflector for local mirrors
+  # when: not b_arch_initial_reflector.stat.exists
+  ansible.builtin.command:
+    cmd: >-
+      reflector --country "Netherlands" --age 1 --sort rate --save /etc/pacman.d/mirrorlist
+
+- name: Install base system with pacstrap
+  ansible.builtin.command:
+    cmd: >-
+      pacstrap -K /mnt
+        base
+        linux
+        linux-firmware
+        linux-headers
+        btrfs-progs
+        vim
+        networkmanager
+        sudo
+        less
+        openssh
+        cryptsetup
+        base-devel
+        git
+        btop
+        man-db
+        man-pages
+        nvidia-open
+        bluez-utils
+        whois
+        curl
+        openssh
+  args:
+    creates: /mnt/etc/arch-release
+
+- name: Generate fstab
+  ansible.builtin.command:
+    cmd: genfstab -pU /mnt
+  register: b_arch_initial_fstab
+
+- name: Write fstab
+  ansible.builtin.copy:
+    dest: /mnt/etc/fstab
+    content: "{{ b_arch_initial_fstab.stdout }}\n"
+    mode: "0644"
+
+- name: Set MAKEFLAGS in makepkg.conf
+  ansible.builtin.replace:
+    path: /mnt/etc/makepkg.conf
+    regexp: '^#MAKEFLAGS="-j2"$'
+    replace: 'MAKEFLAGS="-j{{ ansible_processor_cores - 2 }}"'
+
+- name: Enable NetworkManager
+  ansible.builtin.command:
+    cmd: arch-chroot /mnt systemctl enable NetworkManager

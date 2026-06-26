@@ -1,0 +1,60 @@
+---
+- name: Create user in target
+  ansible.builtin.command:
+    cmd: >-
+      arch-chroot /mnt useradd -m -G wheel {{ setup_username }}
+  args:
+    creates: "/mnt/home/{{ setup_username }}"
+
+- name: Set user password in target
+  ansible.builtin.command:
+    cmd: >-
+      arch-chroot /mnt bash -c "echo '{{ setup_username }}:{{ setup_password }}' | chpasswd"
+  no_log: true
+
+- name: Enable wheel group in sudoers
+  ansible.builtin.lineinfile:
+    path: /mnt/etc/sudoers
+    regexp: '^# %wheel ALL=\(ALL:ALL\) ALL'
+    line: '%wheel ALL=(ALL:ALL) ALL'
+    validate: 'visudo -cf %s'
+
+- name: Disable default lecture on sudo
+  ansible.builtin.copy:
+    dest: /mnt/etc/sudoers.d/99-no-lectures
+    mode: "0644"
+    content: |
+      Defaults lecture=never
+
+- name: Create .ssh folder for setup uper
+  ansible.builtin.file:
+    path: /mnt/home/{{ setup_username }}/.ssh
+    state: directory
+    owner: 1000
+    group: 1000
+    mode: "0700"
+
+- name: Copy installer identity (needed for stow later)
+  ansible.builtin.copy:
+    src: "{{ item.filename }}"
+    dest: "/mnt/home/{{ setup_username }}/.ssh/{{ item.filename }}"
+    mode: "{{ item.mode }}"
+    owner: 1000
+    group: 1000
+  loop:
+    - { filename: id_25519_installer, mode: "0600" }
+    - { filename: id_25519_installer.pub, mode: "0644" }
+
+- name: Slurp the contents of the installer public key
+  register: e_user_pubkey
+  ansible.builtin.slurp:
+    src: /mnt/home/ninjatrek2891/.ssh/id_25519_installer.pub
+
+- name: Register the pubkey as authenticated user
+  ansible.builtin.copy:
+    dest: /mnt/home/ninjatrek2891/.ssh/authorized_keys
+    mode: "0600"
+    owner: 1000
+    group: 1000
+    content: |
+      {{ e_user_pubkey.content | b64decode }}

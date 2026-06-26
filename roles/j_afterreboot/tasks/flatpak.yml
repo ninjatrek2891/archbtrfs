@@ -1,0 +1,57 @@
+---
+- name: Install packages into a new root (similar to pacstrap)
+  community.general.pacman:
+    name:
+      - flatpak
+    state: present
+    config: /etc/pacman.conf
+    update_cache: true
+
+- name: Add Flathub remote
+  ansible.builtin.command:
+    cmd: >-
+      flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+  become: true
+  become_user: "{{ setup_username }}"
+  vars:
+    ansible_remote_tmp: "/tmp/.ansible-{{ setup_username }}-{{ j_afterreboot_uid }}/tmp"
+  environment:
+    XDG_RUNTIME_DIR: "/run/user/{{ j_afterreboot_uid }}"
+    DBUS_SESSION_BUS_ADDRESS: "unix:path=/run/user/{{ j_afterreboot_uid }}/bus"
+
+- name: Update flatpak
+  register: j_afterreboot_uf
+  changed_when: '"Nothing to update" not in j_afterreboot_uf.stdout'
+  ansible.builtin.command:
+    cmd: >-
+      flatpak --user -y update
+  become: true
+  become_user: "{{ setup_username }}"
+  vars:
+    ansible_remote_tmp: "/tmp/.ansible-{{ setup_username }}-{{ j_afterreboot_uid }}/tmp"
+  environment:
+    XDG_RUNTIME_DIR: "/run/user/{{ j_afterreboot_uid }}"
+    DBUS_SESSION_BUS_ADDRESS: "unix:path=/run/user/{{ j_afterreboot_uid }}/bus"
+
+- name: Install flatpak containers
+  register: j_afterreboot_fc
+  changed_when: '"Installing" in j_afterreboot_fc.stdout'
+  ansible.builtin.command:
+    cmd: >-
+      flatpak -y install --user flathub {{ item }}
+  become: true
+  become_user: "{{ setup_username }}"
+  vars:
+    ansible_remote_tmp: "/tmp/.ansible-{{ setup_username }}-{{ j_afterreboot_uid }}/tmp"
+  environment:
+    XDG_RUNTIME_DIR: "/run/user/{{ j_afterreboot_uid }}"
+    DBUS_SESSION_BUS_ADDRESS: "unix:path=/run/user/{{ j_afterreboot_uid }}/bus"
+  loop:
+    - io.gitlab.librewolf-community
+    - com.obsproject.Studio
+    - com.spotify.Client
+    - com.valvesoftware.Steam
+    - io.github.benjamimgois.goverlay
+    - io.github.radiolamp.mangojuice
+    - org.mozilla.thunderbird
+    - org.signal.Signal

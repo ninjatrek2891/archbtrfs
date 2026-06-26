@@ -1,0 +1,27 @@
+---
+- name: Install packages into a new root (similar to pacstrap)
+  community.general.pacman:
+    name:
+      - zsh
+    state: present
+    root: /mnt
+    cachedir: /mnt/var/cache/pacman/pkg
+    config: /mnt/etc/pacman.conf
+    update_cache: false
+
+- name: Install zsh
+  register: h_userspace_zsh
+  changed_when: '"Run zsh to try it out." in h_userspace_zsh.stdout'
+  failed_when: 'h_userspace_zsh.rc > 0 and "folder already exists" not in h_userspace_zsh.stdout'
+  ansible.builtin.command:
+    cmd: >-
+      arch-chroot /mnt sudo su {{ setup_username }}
+      sh -c 'curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh | sh -s -- --unattended'
+
+- name: Set default shell to zsh
+  register: h_userspace_chsh
+  changed_when: '"Shell changed." in h_userspace_chsh.stdout'
+  ansible.builtin.command:
+    cmd: >-
+      arch-chroot /mnt
+      sh -c "chsh -s $(which zsh) {{ setup_username }}"

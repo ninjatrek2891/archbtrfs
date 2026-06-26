@@ -1,0 +1,17 @@
+---
+- name: Run sddm-dekstop
+  when: userspace == 'plasma'
+  ansible.builtin.include_tasks:
+    file: sddm-desktop.yml
+
+- name: Install sway and user environment
+  when: userspace == 'sway'
+  ansible.builtin.include_tasks:
+    file: sway.yml
+
+- name: Run zsh installation
+  tags: zsh
+  ansible.builtin.include_tasks:
+    file: zsh.yml
+    apply:
+      tags: zsh

@@ -1,36 +1,59 @@
 ---
+- name: Prepare Facts
+  hosts: all
+  gather_facts: false
+  tags: always
+  # vars_prompt:
+  #   - name: luks_passhrase
+  #     prompt: "Enter LUKS passphrase"
+  #     private: true
+  #   - name: setup_username
+  #     prompt: "Enter desired username"
+  #     private: false
+  #   - name: setup_password
+  #     prompt: "Enter desired password"
+  #     private: true
+  #   - name: hostname
+  #     prompt: "Enter system hostname"
+  #     private: false
+  #   - name: diskdevice
+  #     prompt: "What is the disk designation? (i.e. nvm0n1)"
+  #     private: false
+  tasks:
+    - name: Cache variables for next play
+      ansible.builtin.set_fact:
+        cacheable: true
+        luks_passhrase: "{{ luks_passhrase }}"
+        setup_username: "{{ setup_username }}"
+        setup_password: "{{ setup_password }}"
+        hostname: "{{ hostname }}"
+        diskdevice: "{{ diskdevice }}"
+        userspace: "{{ userspace }}"
+
 - name: Arch BTRFS installation into VM
   hosts: all
-  gather_facts: true
-  vars:
-    # diskdevice: [disk]
-    # hostname: [hostname]
-    # luks_passhrase: [luks]
-    # setup_username: [username]
-    # setup_password: [password]
-  vars_prompt:
-    - name: luks_passhrase
-      prompt: "Enter LUKS passphrase"
-      private: true
-    - name: setup_username
-      prompt: "Enter desired username"
-      private: false
-    - name: setup_password
-      prompt: "Enter desired password"
-      private: true
-    - name: hostname
-      prompt: "Enter system hostname"
-      private: false
-    - name: luks
-      prompt: "What is the disk designation? (i.e. nvm0n1)"
-      private: false
+  gather_facts: false
+  pre_tasks:
+    - name: Gather facts
+      ansible.builtin.setup:
   roles:
-    - 10.filesystems
-    - 20.arch-initial
-    - 30.hostname
-    - 40.locale
-    - 50.user
-    - 60.mkinitcpio
-    - 65.bootloader
-    - 70.yay
-    - 100.userspace
+    - a_filesystems
+    - b_arch_initial
+    - c_hostname
+    - d_locale
+    - e_user
+    - f_mkinitcpio
+    - fa_bootloader
+    - g_yay
+    - h_userspace
+    - i_reboot
+
+- name: After reboot playbook
+  hosts: all
+  gather_facts: false
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    ansible_user: "{{ setup_username }}"
+    ansible_ssh_private_key_file: roles/e_user/files/id_25519_installer
+  roles:
+    - j_afterreboot

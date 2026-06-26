@@ -1,0 +1,32 @@
+---
+- name: Set timezone symlink
+  ansible.builtin.file:
+    src: /usr/share/zoneinfo/Europe/Amsterdam
+    dest: /mnt/etc/localtime
+    state: link
+    force: true
+
+- name: Set hardware clock
+  ansible.builtin.command:
+    cmd: arch-chroot /mnt hwclock --systohc
+
+- name: Set vconsole.conf
+  ansible.builtin.copy:
+    dest: /mnt/etc/vconsole.conf
+    content: |
+      KEYMAP=us
+      FONT=lat9w-16
+      FONT_MAP=
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Uncomment locale
+  ansible.builtin.lineinfile:
+    path: /mnt/etc/locale.gen
+    regexp: '^#en_US.UTF-8 UTF-8'
+    line: 'en_US.UTF-8 UTF-8'
+
+- name: Generate locales
+  ansible.builtin.command:
+    cmd: arch-chroot /mnt locale-gen

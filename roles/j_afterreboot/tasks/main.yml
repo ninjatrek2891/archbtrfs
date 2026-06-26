@@ -1,0 +1,22 @@
+---
+- name: Wait 300 seconds, but only start checking after 60 seconds
+  ansible.builtin.wait_for_connection:
+    timeout: 300
+
+- name: Look up user account details
+  tags: always
+  ansible.builtin.getent:
+    database: passwd
+    key: "{{ setup_username }}"
+
+- name: Set rootless runtime facts
+  tags: always
+  ansible.builtin.set_fact:
+    j_afterreboot_uid: "{{ ansible_facts['getent_passwd'][setup_username][1] }}"
+
+- name: Run flatpak installation
+  tags: flatpak
+  ansible.builtin.include_tasks:
+    file: flatpak.yml
+    apply:
+      tags: flatpak
