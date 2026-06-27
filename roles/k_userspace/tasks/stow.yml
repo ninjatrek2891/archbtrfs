@@ -1,0 +1,44 @@
+---
+- name: Check if .dotfiles exists
+  register: k_userspace_stow
+  ansible.builtin.stat:
+    path: "/home/{{ setup_username }}/.dotfiles"
+
+- name: Block to install stow
+  when: not k_userspace_stow.stat.exists
+  block:
+    - name: Install packages
+      community.general.pacman:
+        name:
+          - stow
+        state: present
+        update_cache: false
+
+    - name: Clone a repo with separate git directory
+      ansible.builtin.git:
+        repo: 'ssh://git@red.glowingedges.lan:2222/ninjatrek2891/dotfiles.git'
+        remote: origin
+        version: main
+        dest: "/home/{{ setup_username }}/.dotfiles"
+        key_file: "/home/{{ setup_username }}/.ssh/id_25519_installer"
+        accept_hostkey: true
+      become: true
+      become_user: "{{ setup_username }}"
+      vars:
+        ansible_remote_tmp: "/tmp/.ansible-{{ setup_username }}-{{ k_userspace_uid }}/tmp"
+      environment:
+        XDG_RUNTIME_DIR: "/run/user/{{ k_userspace_uid }}"
+        DBUS_SESSION_BUS_ADDRESS: "unix:path=/run/user/{{ k_userspace_uid }}/bus"
+
+    - name: Stow
+      ansible.builtin.command:
+        cmd: stow .
+      args:
+        chdir: "/home/{{ setup_username }}/.dotfiles"
+      become: true
+      become_user: "{{ setup_username }}"
+      vars:
+        ansible_remote_tmp: "/tmp/.ansible-{{ setup_username }}-{{ k_userspace_uid }}/tmp"
+      environment:
+        XDG_RUNTIME_DIR: "/run/user/{{ k_userspace_uid }}"
+        DBUS_SESSION_BUS_ADDRESS: "unix:path=/run/user/{{ k_userspace_uid }}/bus"

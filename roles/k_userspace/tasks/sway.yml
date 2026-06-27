@@ -10,6 +10,7 @@
       - waybar
       - wmenu
       - kitty
+      - fastfetch
       - j4-dmenu-desktop
       - mako
       - neovim
@@ -17,7 +18,6 @@
       - seahorse
       - wl-clipboard
       - slurp
-      - stow
       - otf-font-awesome
       - ttf-jetbrains-mono
       - ttf-jetbrains-mono-nerd
@@ -25,6 +25,15 @@
       - greetd-tuigreet
       - thunar
       - galculator
+      - grim
+      - rclone
+      # - gtk3
+      # - gtk4
+      # - xdg-desktop-portal
+      # - xdg-desktop-portal-gtk
+      # - xdg-desktop-portal-wlr
+      # - breeze-gtk
+      # - gnome-themes-extra
     state: present
     update_cache: false
 
@@ -74,3 +83,36 @@
   ansible.builtin.systemd:
     name: greetd
     enabled: true
+
+- name: Write username to greetd
+  ansible.builtin.copy:
+    content: "{{ setup_username }}"
+    dest: "/var/cache/tuigreet/lastuser"
+    mode: "0644"
+    owner: "greeter"
+    group: "greeter"
+
+# - name: Create GTK directories
+#   ansible.builtin.file:
+#     state: directory
+#     path: "/home/{{ setup_username }}/.config/{{ item }}"
+#     owner: "{{ setup_username }}"
+#     group: "{{ setup_username }}"
+#     mode: "0755"
+#   loop:
+#     - gtk-3.0
+#     - gtk-4.0
+
+# - name: Deploy theme config into directories
+#   ansible.builtin.copy:
+#     content: |
+#       [Settings]
+#       gtk-application-prefer-dark-theme=1
+#       gtk-theme-name=Breeze-Dark
+#     dest: "/home/{{ setup_username }}/.config/{{ item }}/settings.ini"
+#     owner: "{{ setup_username }}"
+#     group: "{{ setup_username }}"
+#     mode: "0644"
+#   loop:
+#     - gtk-3.0
+#     - gtk-4.0

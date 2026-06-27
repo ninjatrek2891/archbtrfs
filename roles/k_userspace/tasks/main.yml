@@ -4,6 +4,13 @@
   ansible.builtin.set_fact:
     k_userspace_uid: "{{ j_afterreboot_uid }}"
 
+- name: Run stow installation
+  tags: stow
+  ansible.builtin.include_tasks:
+    file: stow.yml
+    apply:
+      tags: stow
+
 - name: Run sddm-dekstop
   when: userspace == 'plasma'
   ansible.builtin.include_tasks:
