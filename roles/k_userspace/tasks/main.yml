@@ -1,13 +1,21 @@
 ---
+- name: Set UID in facts
+  tags: always
+  ansible.builtin.set_fact:
+    k_userspace_uid: "{{ j_afterreboot_uid }}"
+
 - name: Run sddm-dekstop
   when: userspace == 'plasma'
   ansible.builtin.include_tasks:
     file: sddm-desktop.yml
 
 - name: Install sway and user environment
+  tags: sway
   when: userspace == 'sway'
   ansible.builtin.include_tasks:
     file: sway.yml
+    apply:
+      tags: sway
 
 - name: Run zsh installation
   tags: zsh
@@ -15,3 +23,10 @@
     file: zsh.yml
     apply:
       tags: zsh
+
+- name: Run flatpak installation
+  tags: flatpak
+  ansible.builtin.include_tasks:
+    file: flatpak.yml
+    apply:
+      tags: flatpak

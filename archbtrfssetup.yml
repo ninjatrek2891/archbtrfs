@@ -42,18 +42,18 @@
     - c_hostname
     - d_locale
     - e_user
-    - f_mkinitcpio
     - fa_bootloader
-    - g_yay
-    - h_userspace
-    - i_reboot
+    - fb_mkinitcpio
+    # - g_yay
+#     - i_reboot
 
-- name: After reboot playbook
-  hosts: all
-  gather_facts: false
-  vars:
-    ansible_python_interpreter: /usr/bin/python3
-    ansible_user: "{{ setup_username }}"
-    ansible_ssh_private_key_file: roles/e_user/files/id_25519_installer
-  roles:
-    - j_afterreboot
+# - name: After reboot playbook
+#   hosts: all
+#   gather_facts: false
+#   vars:
+#     ansible_python_interpreter: /usr/bin/python3
+#     ansible_user: "{{ setup_username }}"
+#     ansible_ssh_private_key_file: roles/e_user/files/id_25519_installer
+#   roles:
+#     - j_afterreboot
+#     - k_userspace

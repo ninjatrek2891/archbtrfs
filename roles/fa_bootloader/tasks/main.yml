@@ -1,7 +1,7 @@
 ---
 - name: Install systemd-boot
   ansible.builtin.command:
-    cmd: arch-chroot /mnt bootctl install
+    cmd: arch-chroot /mnt bootctl install --esp-path /.efi --boot-path /boot
 
 - name: Get LUKS partition UUID
   changed_when: false

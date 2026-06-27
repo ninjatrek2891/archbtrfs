@@ -14,38 +14,38 @@
   become: true
   become_user: "{{ setup_username }}"
   vars:
-    ansible_remote_tmp: "/tmp/.ansible-{{ setup_username }}-{{ j_afterreboot_uid }}/tmp"
+    ansible_remote_tmp: "/tmp/.ansible-{{ setup_username }}-{{ k_userspace_uid }}/tmp"
   environment:
-    XDG_RUNTIME_DIR: "/run/user/{{ j_afterreboot_uid }}"
-    DBUS_SESSION_BUS_ADDRESS: "unix:path=/run/user/{{ j_afterreboot_uid }}/bus"
+    XDG_RUNTIME_DIR: "/run/user/{{ k_userspace_uid }}"
+    DBUS_SESSION_BUS_ADDRESS: "unix:path=/run/user/{{ k_userspace_uid }}/bus"
 
 - name: Update flatpak
-  register: j_afterreboot_uf
-  changed_when: '"Nothing to update" not in j_afterreboot_uf.stdout'
+  register: k_userspace_uf
+  changed_when: '"Nothing to update" not in k_userspace_uf.stdout'
   ansible.builtin.command:
     cmd: >-
       flatpak --user -y update
   become: true
   become_user: "{{ setup_username }}"
   vars:
-    ansible_remote_tmp: "/tmp/.ansible-{{ setup_username }}-{{ j_afterreboot_uid }}/tmp"
+    ansible_remote_tmp: "/tmp/.ansible-{{ setup_username }}-{{ k_userspace_uid }}/tmp"
   environment:
-    XDG_RUNTIME_DIR: "/run/user/{{ j_afterreboot_uid }}"
-    DBUS_SESSION_BUS_ADDRESS: "unix:path=/run/user/{{ j_afterreboot_uid }}/bus"
+    XDG_RUNTIME_DIR: "/run/user/{{ k_userspace_uid }}"
+    DBUS_SESSION_BUS_ADDRESS: "unix:path=/run/user/{{ k_userspace_uid }}/bus"
 
 - name: Install flatpak containers
-  register: j_afterreboot_fc
-  changed_when: '"Installing" in j_afterreboot_fc.stdout'
+  register: k_userspace_fc
+  changed_when: '"Installing" in k_userspace_fc.stdout'
   ansible.builtin.command:
     cmd: >-
       flatpak -y install --user flathub {{ item }}
   become: true
   become_user: "{{ setup_username }}"
   vars:
-    ansible_remote_tmp: "/tmp/.ansible-{{ setup_username }}-{{ j_afterreboot_uid }}/tmp"
+    ansible_remote_tmp: "/tmp/.ansible-{{ setup_username }}-{{ k_userspace_uid }}/tmp"
   environment:
-    XDG_RUNTIME_DIR: "/run/user/{{ j_afterreboot_uid }}"
-    DBUS_SESSION_BUS_ADDRESS: "unix:path=/run/user/{{ j_afterreboot_uid }}/bus"
+    XDG_RUNTIME_DIR: "/run/user/{{ k_userspace_uid }}"
+    DBUS_SESSION_BUS_ADDRESS: "unix:path=/run/user/{{ k_userspace_uid }}/bus"
   loop:
     - io.gitlab.librewolf-community
     - com.obsproject.Studio

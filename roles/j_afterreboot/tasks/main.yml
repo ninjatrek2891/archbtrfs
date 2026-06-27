@@ -13,10 +13,3 @@
   tags: always
   ansible.builtin.set_fact:
     j_afterreboot_uid: "{{ ansible_facts['getent_passwd'][setup_username][1] }}"
-
-- name: Run flatpak installation
-  tags: flatpak
-  ansible.builtin.include_tasks:
-    file: flatpak.yml
-    apply:
-      tags: flatpak

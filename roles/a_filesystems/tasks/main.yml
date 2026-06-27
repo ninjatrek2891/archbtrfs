@@ -13,6 +13,15 @@
     fs_type: fat32
     state: present
 
+- name: Create BOOT partition
+  community.general.parted:
+    device: /dev/{{ diskdevice }}
+    number: 2
+    part_start: 1025MiB
+    part_end: 2050MiB
+    fs_type: fat32
+    state: present
+
 - name: Set EFI esp flag
   ansible.builtin.command:
     cmd: parted -s /dev/{{ diskdevice }} set 1 esp on
@@ -21,24 +30,31 @@
   register: a_filesystems_format
   community.general.parted:
     device: /dev/{{ diskdevice }}
-    number: 2
-    part_start: 1025MiB
+    number: 3
+    part_start: 2050MiB
     part_end: 100%
     state: present
     fs_type: ext4
 
 - name: Create LUKS device
   community.crypto.luks_device:
-    device: /dev/{{ diskdevice }}{% if 'nvme' in diskdevice %}p{% endif %}2
+    device: /dev/{{ diskdevice }}{% if 'nvme' in diskdevice %}p{% endif %}3
     state: present
     passphrase: "{{ luks_passhrase }}"
 
 - name: Open LUKS device
   community.crypto.luks_device:
-    device: /dev/{{ diskdevice }}{% if 'nvme' in diskdevice %}p{% endif %}2
+    device: /dev/{{ diskdevice }}{% if 'nvme' in diskdevice %}p{% endif %}3
     state: opened
     name: cryptroot
     passphrase: "{{ luks_passhrase }}"
+
+
+- name: Format BOOT partition
+  community.general.filesystem:
+    dev: /dev/{{ diskdevice }}{% if 'nvme' in diskdevice %}p{% endif %}2
+    fstype: vfat
+    opts: -F32
 
 - name: Format EFI partition
   community.general.filesystem:
@@ -97,6 +113,7 @@
         mode: "0755"
       loop:
         - /mnt/boot
+        - /mnt/efi
         - /mnt/home
         - /mnt/.snapshots
 
@@ -116,9 +133,16 @@
         opts: subvol=@snapshots,compress=zstd,noatime
         state: mounted
 
-    - name: Mount EFI partition
+    - name: Mount BOOT partition
       ansible.posix.mount:
         path: /mnt/boot
+        src: /dev/{{ diskdevice }}{% if 'nvme' in diskdevice %}p{% endif %}2
+        fstype: vfat
+        state: mounted
+
+    - name: Mount EFI partition
+      ansible.posix.mount:
+        path: /mnt/.efi
         src: /dev/{{ diskdevice }}{% if 'nvme' in diskdevice %}p{% endif %}1
         fstype: vfat
         state: mounted

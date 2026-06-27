@@ -1,5 +1,5 @@
 ---
-- name: Install packages into a new root (similar to pacstrap)
+- name: Install packages
   community.general.pacman:
     name:
       - sway
@@ -26,9 +26,6 @@
       - thunar
       - galculator
     state: present
-    root: /mnt
-    cachedir: /mnt/var/cache/pacman/pkg
-    config: /mnt/etc/pacman.conf
     update_cache: false
 
 
@@ -53,7 +50,7 @@
     mode: "0644"
     owner: root
     group: root
-    dest: /mnt/etc/greetd/config.toml
+    dest: /etc/greetd/config.toml
     content: |
       [terminal]
       # The VT to run the greeter on. Can be "next", "current" or a number
@@ -73,9 +70,7 @@
       user = "greeter"
 
 - name: Enable greetd login
-  register: h_userspace_greetd
-  changed_when: '"Created symlink" in h_userspace_greetd'
-  failed_when: h_userspace_greetd.rc > 0
-  ansible.builtin.command:
-    cmd: >-
-      arch-chroot /mnt systemctl enable greetd
+  register: k_userspace_greetd
+  ansible.builtin.systemd:
+    name: greetd
+    enabled: true

@@ -8,7 +8,7 @@
   # when: not b_arch_initial_reflector.stat.exists
   ansible.builtin.command:
     cmd: >-
-      reflector --country "Netherlands" --age 1 --sort rate --save /etc/pacman.d/mirrorlist
+      reflector --country "Netherlands" --age 2 --sort rate --save /etc/pacman.d/mirrorlist
 
 - name: Install base system with pacstrap
   ansible.builtin.command:
@@ -35,6 +35,7 @@
         whois
         curl
         openssh
+        systemd-ukify
   args:
     creates: /mnt/etc/arch-release
 
