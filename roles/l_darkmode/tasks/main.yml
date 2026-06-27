@@ -1,0 +1,66 @@
+---
+- name: Install packages
+  community.general.pacman:
+    name:
+      - gtk3
+      - gtk4
+      # - xdg-desktop-portal
+      # - xdg-desktop-portal-gtk
+      # - xdg-desktop-portal-wlr
+      - breeze-gtk
+    state: present
+    update_cache: false
+
+- name: Create GTK directories
+  ansible.builtin.file:
+    state: directory
+    path: "/home/{{ setup_username }}/.config/{{ item }}"
+    owner: "{{ setup_username }}"
+    group: "{{ setup_username }}"
+    mode: "0755"
+  loop:
+    - gtk-3.0
+    - gtk-4.0
+
+- name: Deploy theme config into directories
+  ansible.builtin.copy:
+    content: |
+      [Settings]
+      gtk-application-prefer-dark-theme=1
+      gtk-theme-name=Breeze-Dark
+    dest: "/home/{{ setup_username }}/.config/{{ item }}/settings.ini"
+    owner: "{{ setup_username }}"
+    group: "{{ setup_username }}"
+    mode: "0644"
+  loop:
+    - gtk-3.0
+    - gtk-4.0
+
+- name: Run gsettings for gtk dark mode in flatpak
+  ansible.builtin.command:
+    cmd: >-
+      {{ item }}
+  loop:
+    - 'gsettings set org.gnome.desktop.interface color-scheme "prefer-dark"'
+    - 'gsettings set org.gnome.desktop.interface gtk-theme Breeze-Dark'
+  become: true
+  become_user: "{{ setup_username }}"
+  vars:
+    ansible_remote_tmp: "/tmp/.ansible-{{ setup_username }}-{{ k_userspace_uid }}/tmp"
+  environment:
+    XDG_RUNTIME_DIR: "/run/user/{{ k_userspace_uid }}"
+    DBUS_SESSION_BUS_ADDRESS: "unix:path=/run/user/{{ k_userspace_uid }}/bus"
+
+- name: Retart xdg-desktop-portal
+  ansible.builtin.systemd_service:
+    name: xdg-desktop-portal
+    state: restarted
+    enabled: true
+    scope: user
+  become: true
+  become_user: "{{ setup_username }}"
+  vars:
+    ansible_remote_tmp: "/tmp/.ansible-{{ setup_username }}-{{ k_userspace_uid }}/tmp"
+  environment:
+    XDG_RUNTIME_DIR: "/run/user/{{ k_userspace_uid }}"
+    DBUS_SESSION_BUS_ADDRESS: "unix:path=/run/user/{{ k_userspace_uid }}/bus"

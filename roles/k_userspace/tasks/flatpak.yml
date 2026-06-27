@@ -10,14 +10,14 @@
 - name: Add Flathub remote
   ansible.builtin.command:
     cmd: >-
-      flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-  # become: true
-  # become_user: "{{ setup_username }}"
-  # vars:
-  #   ansible_remote_tmp: "/tmp/.ansible-{{ setup_username }}-{{ k_userspace_uid }}/tmp"
-  # environment:
-  #   XDG_RUNTIME_DIR: "/run/user/{{ k_userspace_uid }}"
-  #   DBUS_SESSION_BUS_ADDRESS: "unix:path=/run/user/{{ k_userspace_uid }}/bus"
+      flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+  become: true
+  become_user: "{{ setup_username }}"
+  vars:
+    ansible_remote_tmp: "/tmp/.ansible-{{ setup_username }}-{{ k_userspace_uid }}/tmp"
+  environment:
+    XDG_RUNTIME_DIR: "/run/user/{{ k_userspace_uid }}"
+    DBUS_SESSION_BUS_ADDRESS: "unix:path=/run/user/{{ k_userspace_uid }}/bus"
 
 - name: Update flatpak
   register: k_userspace_uf
@@ -55,4 +55,3 @@
     - io.github.radiolamp.mangojuice
     - org.mozilla.thunderbird
     - org.signal.Signal
-

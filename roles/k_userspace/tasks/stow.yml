@@ -30,6 +30,11 @@
         XDG_RUNTIME_DIR: "/run/user/{{ k_userspace_uid }}"
         DBUS_SESSION_BUS_ADDRESS: "unix:path=/run/user/{{ k_userspace_uid }}/bus"
 
+    - name: Remove current .zshrc file
+      ansible.builtin.file:
+        path: "/home/{{ setup_username }}/.zshrc"
+        state: absent
+
     - name: Stow
       ansible.builtin.command:
         cmd: stow .

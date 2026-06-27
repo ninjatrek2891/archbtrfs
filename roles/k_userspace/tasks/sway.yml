@@ -27,16 +27,8 @@
       - galculator
       - grim
       - rclone
-      # - gtk3
-      # - gtk4
-      # - xdg-desktop-portal
-      # - xdg-desktop-portal-gtk
-      # - xdg-desktop-portal-wlr
-      # - breeze-gtk
-      # - gnome-themes-extra
     state: present
     update_cache: false
-
 
 - name: Create background directory
   ansible.builtin.file:
@@ -91,28 +83,3 @@
     mode: "0644"
     owner: "greeter"
     group: "greeter"
-
-# - name: Create GTK directories
-#   ansible.builtin.file:
-#     state: directory
-#     path: "/home/{{ setup_username }}/.config/{{ item }}"
-#     owner: "{{ setup_username }}"
-#     group: "{{ setup_username }}"
-#     mode: "0755"
-#   loop:
-#     - gtk-3.0
-#     - gtk-4.0
-
-# - name: Deploy theme config into directories
-#   ansible.builtin.copy:
-#     content: |
-#       [Settings]
-#       gtk-application-prefer-dark-theme=1
-#       gtk-theme-name=Breeze-Dark
-#     dest: "/home/{{ setup_username }}/.config/{{ item }}/settings.ini"
-#     owner: "{{ setup_username }}"
-#     group: "{{ setup_username }}"
-#     mode: "0644"
-#   loop:
-#     - gtk-3.0
-#     - gtk-4.0

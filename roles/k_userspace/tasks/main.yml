@@ -4,6 +4,14 @@
   ansible.builtin.set_fact:
     k_userspace_uid: "{{ j_afterreboot_uid }}"
 
+
+- name: Run zsh installation
+  tags: zsh
+  ansible.builtin.include_tasks:
+    file: zsh.yml
+    apply:
+      tags: zsh
+
 - name: Run stow installation
   tags: stow
   ansible.builtin.include_tasks:
@@ -23,13 +31,6 @@
     file: sway.yml
     apply:
       tags: sway
-
-- name: Run zsh installation
-  tags: zsh
-  ansible.builtin.include_tasks:
-    file: zsh.yml
-    apply:
-      tags: zsh
 
 - name: Run flatpak installation
   tags: flatpak

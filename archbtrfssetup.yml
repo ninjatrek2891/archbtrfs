@@ -58,4 +58,5 @@
   roles:
     - j_afterreboot
     - k_userspace
+    - l_darkmode
     - z_cleanup
