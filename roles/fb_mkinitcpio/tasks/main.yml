@@ -2,12 +2,28 @@
 - name: Create efi linux directory
   ansible.builtin.file:
     path: /mnt/efi/EFI/Linux
-    mode: "0644"
+    mode: "0755"
     state: directory
 
-- name: Deploy linux preseed file
+- name: Get LUKS partition UUID
+  changed_when: false
+  ansible.builtin.command:
+    cmd: blkid -s UUID -o value /dev/{{ diskdevice }}{% if 'nvme' in diskdevice %}p{% endif %}3
+  register: fb_mkinitcpio_cryptuuid
+
+- name: Write kernel cmdline for UKI
+  notify: Rebuild initramfs
   ansible.builtin.copy:
-    dest: /mnt/etc/mkinitcpio.d/linux.preseed
+    dest: /mnt/etc/kernel/cmdline
+    mode: "0644"
+    content: >-
+      rd.luks.name={{ fb_mkinitcpio_cryptuuid.stdout }}=cryptroot
+      root=/dev/mapper/cryptroot rootflags=subvol=@ rw
+
+- name: Deploy linux preset file
+  notify: Rebuild initramfs
+  ansible.builtin.copy:
+    dest: /mnt/etc/mkinitcpio.d/linux.preset
     mode: "0644"
     content: |
       # mkinitcpio preset file for the 'linux' package

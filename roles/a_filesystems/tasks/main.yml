@@ -12,6 +12,9 @@
     part_end: 1025MiB
     fs_type: fat32
     state: present
+    label: gpt
+    name: EFI
+
 
 - name: Create BOOT partition
   community.general.parted:
@@ -21,10 +24,16 @@
     part_end: 2050MiB
     fs_type: fat32
     state: present
+    label: gpt
+    name: BOOT
 
 - name: Set EFI esp flag
   ansible.builtin.command:
     cmd: parted -s /dev/{{ diskdevice }} set 1 esp on
+
+- name: Set XBOOTLDR type on BOOT partition
+  ansible.builtin.command:
+    cmd: sgdisk -t 2:bc13c2ff-59e6-4262-a352-b275fd6f7172 /dev/{{ diskdevice }} -g
 
 - name: Create root partition
   register: a_filesystems_format
@@ -35,6 +44,8 @@
     part_end: 100%
     state: present
     fs_type: ext4
+    label: gpt
+    name: OS
 
 - name: Create LUKS device
   community.crypto.luks_device:
@@ -142,7 +153,7 @@
 
     - name: Mount EFI partition
       ansible.posix.mount:
-        path: /mnt/.efi
+        path: /mnt/efi
         src: /dev/{{ diskdevice }}{% if 'nvme' in diskdevice %}p{% endif %}1
         fstype: vfat
         state: mounted

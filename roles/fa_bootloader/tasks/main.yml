@@ -1,60 +1,15 @@
 ---
 - name: Install systemd-boot
   ansible.builtin.command:
-    cmd: arch-chroot /mnt bootctl install --esp-path /.efi --boot-path /boot
-
-- name: Get LUKS partition UUID
-  changed_when: false
-  ansible.builtin.command:
-    cmd: blkid -s UUID -o value /dev/{{ diskdevice }}{% if 'nvme' in diskdevice %}p{% endif %}2
-  register: fa_bootloader_cryptuuid
-
-- name: Ensure loader directories exist
-  ansible.builtin.file:
-    path: "{{ item }}"
-    state: directory
-    mode: "0755"
-  loop:
-    - /mnt/boot/loader
-    - /mnt/boot/loader/entries
+    cmd: arch-chroot /mnt bootctl install --esp-path /efi --boot-path /boot
 
 - name: Write loader.conf
-  notify: Rebuild initramfs
   ansible.builtin.copy:
-    dest: /mnt/boot/loader/loader.conf
+    dest: /mnt/efi/loader/loader.conf
     content: |
-      default arch.conf
+      default arch-linux.efi
       timeout 3
       editor no
     owner: root
     group: root
     mode: "0644"
-
-- name: Write main boot entry
-  notify: Rebuild initramfs
-  ansible.builtin.copy:
-    dest: /mnt/boot/loader/entries/arch.conf
-    content: |
-      title   Arch Linux
-      linux   /vmlinuz-linux
-      initrd  /initramfs-linux.img
-      options rd.luks.name={{ fa_bootloader_cryptuuid.stdout }}=cryptroot root=/dev/mapper/cryptroot rootflags=subvol=@ rw
-    owner: root
-    group: root
-    mode: "0644"
-
-- name: Write fallback boot entry
-  notify: Rebuild initramfs
-  ansible.builtin.copy:
-    dest: /mnt/boot/loader/entries/arch-fallback.conf
-    content: |
-      title   Arch Linux (fallback)
-      linux   /vmlinuz-linux
-      initrd  /initramfs-linux-fallback.img
-      options rd.luks.name={{ fa_bootloader_cryptuuid.stdout }}=cryptroot root=/dev/mapper/cryptroot rootflags=subvol=@ rw
-    owner: root
-    group: root
-    mode: "0644"
-
-- name: Force notified handlers to run now
-  ansible.builtin.meta: flush_handlers
