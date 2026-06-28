@@ -13,19 +13,19 @@
     group: root
     mode: "0440"
 
-- name: Ask for confirmation
-  ansible.builtin.pause:
-    prompt: "Do you want to reboot? (yes/no)"
-  register: i_reboot_reboot_confirm
+# - name: Ask for confirmation
+#   ansible.builtin.pause:
+#     prompt: "Do you want to reboot? (yes/no)"
+#   register: i_reboot_reboot_confirm
 
-- name: Abort if not confirmed
-  ansible.builtin.fail:
-    msg: "Reboot aborted by user"
-  when: i_reboot_reboot_confirm.user_input | lower != "yes"
+# - name: Abort if not confirmed
+#   ansible.builtin.fail:
+#     msg: "Reboot aborted by user"
+#   when: i_reboot_reboot_confirm.user_input | lower != "yes"
 
-- name: Reboot machine
+- name: Shutdown machine
   ansible.builtin.command:
-    cmd: reboot now
+    cmd: shutdown now
   async: 1
   poll: 0
 

@@ -1,0 +1,4 @@
+---
+ansible_user: root
+setup_username: ninjatrek2891
+userspace: sway

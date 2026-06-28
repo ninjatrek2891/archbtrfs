@@ -3,6 +3,10 @@
   ansible.builtin.command:
     cmd: arch-chroot /mnt bootctl install --esp-path /efi --boot-path /boot
 
+- name: Include tasks for secure boot
+  ansible.builtin.import_tasks:
+    file: secure_boot.yml
+
 - name: Write loader.conf
   ansible.builtin.copy:
     dest: /mnt/efi/loader/loader.conf
@@ -13,3 +17,6 @@
     owner: root
     group: root
     mode: "0644"
+
+- name: Force notified handlers to run now
+  ansible.builtin.meta: flush_handlers

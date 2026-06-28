@@ -2,39 +2,43 @@
 - name: Prepare Facts
   hosts: all
   gather_facts: false
-  tags: always
-  # vars_prompt:
-  #   - name: luks_passhrase
-  #     prompt: "Enter LUKS passphrase"
-  #     private: true
-  #   - name: setup_username
-  #     prompt: "Enter desired username"
-  #     private: false
-  #   - name: setup_password
-  #     prompt: "Enter desired password"
-  #     private: true
-  #   - name: hostname
-  #     prompt: "Enter system hostname"
-  #     private: false
-  #   - name: diskdevice
-  #     prompt: "What is the disk designation? (i.e. nvm0n1)"
-  #     private: false
   tasks:
-    - name: Cache variables for next play
+    - name: If afterreboot
+      tags: never, afterreboot
+      ansible.builtin.set_fact:
+        ansible_user: "{{ setup_username }}"
+
+    - name: Gather hardware facts
+      tags: always
+      ansible.builtin.setup:
+        gather_subset:
+          - hardware
+
+    - name: Cache variables
+      tags: always
       ansible.builtin.set_fact:
         cacheable: true
         luks_passhrase: "{{ luks_passhrase }}"
         setup_username: "{{ setup_username }}"
         setup_password: "{{ setup_password }}"
-        hostname: "{{ hostname }}"
-        diskdevice: "{{ diskdevice }}"
+        hostname: "{{ inventory_hostname_short }}"
         userspace: "{{ userspace }}"
+        diskdevice: >-
+          {{
+              ansible_facts['devices']
+              | dict2items
+              | selectattr('value.serial', 'defined')
+              | selectattr('value.serial', 'equalto', diskserial)
+              | map(attribute='key')
+              | first
+          }}
+
 
 - name: Arch BTRFS installation into VM
   hosts: all
   gather_facts: false
   pre_tasks:
-    - name: Gather facts
+    - name: Gather all facts
       ansible.builtin.setup:
   roles:
     - a_filesystems
@@ -42,8 +46,8 @@
     - c_hostname
     - d_locale
     - e_user
-    - fa_bootloader
     - fb_mkinitcpio
+    - fa_bootloader
     - g_yay
     - i_reboot
 

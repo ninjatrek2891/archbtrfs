@@ -1,4 +1,8 @@
 ---
+- name: Get NVME drive label
+  ansible.builtin.import_tasks:
+    file: nvme.yml
+
 - name: Create GPT label
   community.general.parted:
     device: /dev/{{ diskdevice }}
@@ -157,3 +161,4 @@
         src: /dev/{{ diskdevice }}{% if 'nvme' in diskdevice %}p{% endif %}1
         fstype: vfat
         state: mounted
+        opts: defaults,fmask=0137,dmask=0027

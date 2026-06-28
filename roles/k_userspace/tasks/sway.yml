@@ -54,20 +54,9 @@
     dest: /etc/greetd/config.toml
     content: |
       [terminal]
-      # The VT to run the greeter on. Can be "next", "current" or a number
-      # designating the VT.
       vt = 1
-
-      # The default session, also known as the greeter.
       [default_session]
-
-      # `agreety` is the bundled agetty/login-lookalike. You can replace `/bin/sh`
-      # with whatever you want started, such as `sway`.
       command = "tuigreet -r --cmd 'sway --unsupported-gpu'"
-
-      # The user to run the command as. The privileges this user must have depends
-      # on the greeter. A graphical greeter may for example require the user to be
-      # in the `video` group.
       user = "greeter"
 
 - name: Enable greetd login
@@ -83,3 +72,19 @@
     mode: "0644"
     owner: "greeter"
     group: "greeter"
+
+- name: Set display output for sway
+  ansible.builtin.copy:
+    content: "{{ sway_display }}"
+    dest: "/etc/sway/config.d/10-display.conf"
+    mode: "0644"
+    owner: root
+    group: root
+
+- name: Set mod key bind
+  ansible.builtin.copy:
+    content: "{{ sway_modkey }}"
+    dest: "/etc/sway/config.d/20-modkey.conf"
+    mode: "0644"
+    owner: root
+    group: root

@@ -1,0 +1,4 @@
+---
+- name: Show disk device
+  ansible.builtin.debug:
+    msg: "Disk device is now set to {{ diskdevice }}"

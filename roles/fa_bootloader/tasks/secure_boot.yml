@@ -1,0 +1,52 @@
+---
+- name: Reset EFI keys to make new ones
+  register: fa_bootloader_sbctl_reset
+  failed_when: false
+  changed_when: '"Removed Platform Key" in fa_bootloader_sbctl_reset.stdout'
+  ansible.builtin.command:
+    cmd: >-
+      arch-chroot /mnt sbctl reset
+
+- name: Creating secure boot keys
+  notify: Rebuild initramfs
+  register: fa_bootloader_sbctl_create_keys
+  changed_when: '"Created Owner" in fa_bootloader_sbctl_create_keys.stdout'
+  ansible.builtin.command:
+    cmd: >-
+      arch-chroot /mnt sbctl create-keys
+
+- name: Enroll keys to EFI
+  notify: Rebuild initramfs
+  register: fa_bootloader_sbctl_enroll_keys
+  changed_when: '"Created Owner" in fa_bootloader_sbctl_enroll_keys.stdout'
+  ansible.builtin.command:
+    cmd: >-
+      arch-chroot /mnt sbctl enroll-keys -m
+
+- name: Sign bootloader
+  notify: Rebuild initramfs
+  register: fa_bootloader_sbctl_sign_bootloader
+  changed_when: '"Signed" in fa_bootloader_sbctl_sign_bootloader.stdout'
+  ansible.builtin.command:
+    cmd: >-
+      arch-chroot /mnt sbctl sign -s -o /usr/lib/systemd/boot/efi/systemd-bootx64.efi.signed /usr/lib/systemd/boot/efi/systemd-bootx64.efi
+
+- name: Sign Arch Linux
+  notify: Rebuild initramfs
+  register: fa_bootloader_sbctl_sign_arch
+  changed_when: '"Signed" in fa_bootloader_sbctl_sign_arch.stdout'
+  ansible.builtin.command:
+    cmd: >-
+      arch-chroot /mnt sbctl sign -s /efi/EFI/Linux/arch-linux.efi
+
+- name: Sign Arch Linux Fallback
+  notify: Rebuild initramfs
+  register: fa_bootloader_sbctl_sign_fallback
+  changed_when: '"Signed" in fa_bootloader_sbctl_sign_fallback.stdout'
+  ansible.builtin.command:
+    cmd: >-
+      arch-chroot /mnt sbctl sign -s /efi/EFI/Linux/arch-linux.efi
+
+- name: Rerun systemd-boot installer
+  ansible.builtin.command:
+    cmd: arch-chroot /mnt bootctl install --esp-path /efi --boot-path /boot

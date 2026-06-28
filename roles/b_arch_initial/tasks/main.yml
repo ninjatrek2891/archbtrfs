@@ -36,6 +36,8 @@
         curl
         openssh
         systemd-ukify
+        efibootmgr
+        sbctl
   args:
     creates: /mnt/etc/arch-release
 

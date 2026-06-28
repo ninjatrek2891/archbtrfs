@@ -8,7 +8,7 @@
       arch-chroot /mnt which yay
 
 - name: Block for yay installation
-  when: '"/usr/bin/yay" not in g_yay_check.stdout'
+  when: '("/usr/bin/yay" not in g_yay_check.stdout) and yay_enabled == "true"'
   block:
     - name: Allow temporary passwordless sudo for setup user
       ansible.builtin.copy:

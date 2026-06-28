@@ -1,0 +1,37 @@
+---
+virtual:
+  hosts:
+    viper-va-test:
+      ansible_host: 127.0.0.1
+      ansible_port: 2222
+      ansible_user: root
+      sway_display: "output Virtual-1 scale 1 resolution 1920x1080@60.000Hz"
+      sway_modkey: "set $mod Mod1"
+      diskdevice: vda
+      diskserial: nvmearchlinux1
+      yay_enabled: false
+
+home:
+  hosts:
+    viper-1l:
+      sway_display: "output DP-3 scale 1 resolution 3440x1440@164.999Hz"
+      sway_modkey: "set $mod Mod4"
+      diskdevice: nvme0n1
+      yay_enabled: true
+
+base:
+  hosts:
+    viper-2l:
+      sway_display: ""
+      sway_modkey: "set $mod Mod4"
+      diskdevice: nvme0n1
+      yay_enabled: true
+
+laptop:
+  hosts:
+    viper-5l:
+      sway_display: "output eDP-1 scale 1.4 resolution 2880x1800@90.000Hz"
+      sway_modkey: "set $mod Mod4"
+      diskdevice: nvme0n1
+      diskserial: S4DZNX0R922327
+      yay_enabled: true
